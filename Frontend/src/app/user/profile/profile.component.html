@@ -1,0 +1,19 @@
+<div class="profile-container">
+  <mat-card *ngIf="profile; else loadingTpl">
+    <mat-card-header>
+      <mat-card-title>User Profile</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="profile-details">
+        <p><strong>Full Name:</strong> {{ profile.fullName }}</p>
+        <p><strong>Email:</strong> {{ profile.email }}</p>
+        <p><strong>Username:</strong> {{ profile.userName }}</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  <ng-template #loadingTpl>
+    <mat-card>
+      <mat-card-content>Loading profile...</mat-card-content>
+    </mat-card>
+  </ng-template>
+</div>
