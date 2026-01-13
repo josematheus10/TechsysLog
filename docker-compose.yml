@@ -1,0 +1,16 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+
+  backend:
+    image: ${DOCKER_REGISTRY-}backend
+    build:
+      context: .
+      dockerfile: Backend/Dockerfile
+
+  frontend:
+    image: ${DOCKER_REGISTRY-}frontend
+    build:
+      context: Frontend
+      dockerfile: Dockerfile

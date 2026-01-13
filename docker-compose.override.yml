@@ -1,0 +1,50 @@
+services:
+  mongodb:
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin123
+      - MONGO_INITDB_DATABASE=techsyslog
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - techsyslog-network
+
+  backend:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - MongoDB__ConnectionString=mongodb://admin:admin123@mongodb:27017
+      - MongoDB__DatabaseName=techsyslog
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    depends_on:
+      - mongodb
+    networks:
+      - techsyslog-network
+
+  frontend:
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - techsyslog-network
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  techsyslog-network:
+    driver: bridge
