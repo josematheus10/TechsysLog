@@ -106,6 +106,7 @@ public class OrdersController : ControllerBase
                     City = createdOrder.DeliveryAddress.City,
                     State = createdOrder.DeliveryAddress.State
                 },
+                Status = createdOrder.Status,
                 UserId = createdOrder.UserId,
                 UserName = createdOrder.UserName,
                 CreatedAt = createdOrder.CreatedAt,
@@ -155,6 +156,7 @@ public class OrdersController : ControllerBase
                     City = order.DeliveryAddress.City,
                     State = order.DeliveryAddress.State
                 },
+                Status = order.Status,
                 UserId = order.UserId,
                 UserName = order.UserName,
                 CreatedAt = order.CreatedAt,
@@ -204,6 +206,7 @@ public class OrdersController : ControllerBase
                     City = order.DeliveryAddress.City,
                     State = order.DeliveryAddress.State
                 },
+                Status = order.Status,
                 UserId = order.UserId,
                 UserName = order.UserName,
                 CreatedAt = order.CreatedAt,
@@ -247,6 +250,7 @@ public class OrdersController : ControllerBase
                     City = order.DeliveryAddress.City,
                     State = order.DeliveryAddress.State
                 },
+                Status = order.Status,
                 UserId = order.UserId,
                 UserName = order.UserName,
                 CreatedAt = order.CreatedAt,

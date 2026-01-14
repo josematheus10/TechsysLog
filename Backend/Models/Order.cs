@@ -21,6 +21,9 @@ public class Order
     [BsonElement("deliveryAddress")]
     public DeliveryAddress DeliveryAddress { get; set; } = new();
 
+    [BsonElement("status")]
+    public string Status { get; set; } = "novo";
+
     [BsonElement("userId")]
     public string UserId { get; set; } = string.Empty;
 

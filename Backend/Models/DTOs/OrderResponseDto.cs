@@ -7,6 +7,7 @@ public class OrderResponseDto
     public string Description { get; set; } = string.Empty;
     public decimal Value { get; set; }
     public DeliveryAddressDto DeliveryAddress { get; set; } = new();
+    public string Status { get; set; } = string.Empty;
     public string UserId { get; set; } = string.Empty;
     public string? UserName { get; set; }
     public DateTime CreatedAt { get; set; }
