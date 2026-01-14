@@ -3,6 +3,7 @@ import {
   ApplicationConfig,
   importProvidersFrom,
   inject,
+  LOCALE_ID,
   provideAppInitializer,
 } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
@@ -33,10 +34,11 @@ import { InMemDataService } from '@shared/in-mem/in-mem-data.service';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
-  providers: [
-    { provide: BASE_URL, useValue: environment.baseUrl },
-    provideAppInitializer(() => inject(TranslateLangService).load()),
-    provideAppInitializer(() => inject(StartupService).load()),
+providers: [
+  { provide: BASE_URL, useValue: environment.baseUrl },
+  { provide: LOCALE_ID, useValue: 'pt-BR' },
+  provideAppInitializer(() => inject(TranslateLangService).load()),
+  provideAppInitializer(() => inject(StartupService).load()),
     provideHttpClient(withInterceptors(interceptors)),
     provideRouter(
       routes,

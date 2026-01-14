@@ -7,7 +7,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterLink } from '@angular/router';
-import { SettingsService } from '@core';
+import { SettingsService, SignalRService } from '@core';
 import { MtxAlertModule } from '@ng-matero/extensions/alert';
 import { MtxProgressModule } from '@ng-matero/extensions/progress';
 import { Subscription } from 'rxjs';
@@ -35,8 +35,9 @@ import { OrdersList } from '../orders/orders-list/orders-list';
   ],
 })
 export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
-  private readonly ngZone = inject(NgZone);
-  private readonly settings = inject(SettingsService);
+private readonly ngZone = inject(NgZone);
+private readonly settings = inject(SettingsService);
+private readonly signalRService = inject(SignalRService);
 
   displayedColumns: string[] = ['position', 'name', 'weight', 'symbol'];
   dataSource = ELEMENT_DATA;
@@ -89,6 +90,8 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
   introducingItem = this.introducingItems[this.getRandom(0, 4)];
 
   ngOnInit() {
+    this.signalRService.startConnection();
+    
     this.notifySubscription = this.settings.notify.subscribe(opts => {
       console.log(opts);
 
@@ -110,6 +113,7 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
     this.chart2?.destroy();
 
     this.notifySubscription.unsubscribe();
+    this.signalRService.stopConnection();
   }
 
   initCharts() {

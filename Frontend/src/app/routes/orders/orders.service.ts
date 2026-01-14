@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+import { SignalRService } from '@core';
 
 export interface DeliveryAddress {
   cep: string;
@@ -40,6 +41,11 @@ export interface UpdateOrderStatusRequest {
 })
 export class OrdersService {
   protected readonly http = inject(HttpClient);
+  private readonly signalRService = inject(SignalRService);
+
+  onNewOrder(): Observable<string> {
+    return this.signalRService.on('new-order');
+  }
 
   createOrder(order: CreateOrderRequest): Observable<OrderResponse> {
     return this.http.post<OrderResponse>('/api/Orders', order);

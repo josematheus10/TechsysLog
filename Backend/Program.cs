@@ -1,5 +1,6 @@
 using Backend.Configuration;
 using Backend.Data;
+using Backend.Hubs;
 using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -70,6 +71,23 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
         ClockSkew = TimeSpan.Zero
     };
+    
+    // Permitir autenticação via query string para SignalR
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            
+            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+            
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // Add Authorization
@@ -87,12 +105,14 @@ builder.Services.AddCors(options =>
         policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials()
-              .SetIsOriginAllowed(origin => true);
+              .AllowCredentials();
     });
 });
 
 builder.Services.AddControllers();
+
+// Add SignalR
+builder.Services.AddSignalR();
 
 // Configure Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -131,5 +151,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<OrdersHub>("/hubs/orders");
 
 app.Run();

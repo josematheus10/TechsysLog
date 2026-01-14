@@ -1,9 +1,11 @@
 using Backend.Data;
+using Backend.Hubs;
 using Backend.Models;
 using Backend.Models.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace Backend.Controllers;
@@ -16,15 +18,18 @@ public class OrdersController : ControllerBase
     private readonly IOrderStore _orderStore;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<OrdersController> _logger;
+    private readonly IHubContext<OrdersHub> _hubContext;
 
     public OrdersController(
         IOrderStore orderStore,
         UserManager<ApplicationUser> userManager,
-        ILogger<OrdersController> logger)
+        ILogger<OrdersController> logger,
+        IHubContext<OrdersHub> hubContext)
     {
         _orderStore = orderStore;
         _userManager = userManager;
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     /// <summary>
@@ -90,6 +95,9 @@ public class OrdersController : ControllerBase
 
             _logger.LogInformation("Pedido {OrderNumber} criado com sucesso pelo usuário {UserId}", 
                 createdOrder.OrderNumber, userId);
+
+            // Emitir evento SignalR
+            await _hubContext.Clients.All.SendAsync("new-order", createdOrder.OrderNumber);
 
             var response = new OrderResponseDto
             {

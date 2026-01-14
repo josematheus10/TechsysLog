@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { OrdersService, OrderResponse } from '../orders.service';
-import { finalize } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-orders-list',
@@ -22,9 +22,10 @@ import { finalize } from 'rxjs';
     MatSnackBarModule,
   ],
 })
-export class OrdersList implements OnInit {
+export class OrdersList implements OnInit, OnDestroy {
   private readonly ordersService = inject(OrdersService);
   private readonly snackBar = inject(MatSnackBar);
+  private subscription = new Subscription();
 
   orders: OrderResponse[] = [];
   displayedColumns: string[] = ['orderNumber', 'description', 'value', 'status', 'actions'];
@@ -33,6 +34,20 @@ export class OrdersList implements OnInit {
 
   ngOnInit(): void {
     this.loadOrders();
+    
+    this.subscription.add(
+      this.ordersService.onNewOrder().subscribe({
+        next: (orderNumber: string) => {
+          console.log('Novo pedido recebido via SignalR:', orderNumber);
+          this.loadOrders();
+        },
+        error: (err) => console.error('Erro ao receber notificação de novo pedido:', err)
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
   loadOrders(): void {

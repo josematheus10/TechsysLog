@@ -3,6 +3,7 @@ import { AuthService, User } from '@core/authentication';
 import { NgxPermissionsService, NgxRolesService } from 'ngx-permissions';
 import { switchMap, tap } from 'rxjs';
 import { Menu, MenuService } from './menu.service';
+import { SignalRService } from '../services/signalr.service';
 
 @Injectable({
   providedIn: 'root',
@@ -12,6 +13,7 @@ export class StartupService {
   private readonly menuService = inject(MenuService);
   private readonly permissonsService = inject(NgxPermissionsService);
   private readonly rolesService = inject(NgxRolesService);
+  private readonly signalRService = inject(SignalRService);
 
   /**
    * Load the application only after get the menu or other essential informations
@@ -22,7 +24,13 @@ export class StartupService {
       this.authService
         .change()
         .pipe(
-          tap(user => this.setPermissions(user)),
+          tap(user => {
+            this.setPermissions(user);
+            // Iniciar conexão SignalR após autenticação
+            if (user) {
+              this.signalRService.startConnection();
+            }
+          }),
           switchMap(() => this.authService.menu()),
           tap(menu => this.setMenu(menu))
         )
