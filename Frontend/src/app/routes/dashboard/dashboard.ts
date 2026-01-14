@@ -12,6 +12,7 @@ import { MtxAlertModule } from '@ng-matero/extensions/alert';
 import { MtxProgressModule } from '@ng-matero/extensions/progress';
 import { Subscription } from 'rxjs';
 import { CHARTS, ELEMENT_DATA, MESSAGES, STATS } from './data';
+import { OrderFormCard } from '../orders/order-form-card/order-form-card';
 
 @Component({
   selector: 'app-dashboard',
@@ -28,6 +29,7 @@ import { CHARTS, ELEMENT_DATA, MESSAGES, STATS } from './data';
     MatTabsModule,
     MtxProgressModule,
     MtxAlertModule,
+    OrderFormCard,
   ],
 })
 export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
@@ -90,6 +92,11 @@ export class Dashboard implements OnInit, AfterViewInit, OnDestroy {
 
       this.updateCharts();
     });
+  }
+
+  onOrderCreated(): void {
+    // Callback opcional quando um pedido é criado
+    console.log('Pedido criado com sucesso!');
   }
 
   ngAfterViewInit() {

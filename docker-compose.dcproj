@@ -11,5 +11,8 @@
     </None>
     <None Include="docker-compose.yml" />
     <None Include=".dockerignore" />
+    <None Include="IMPLEMENTATION_SUMMARY.md" />
+    <None Include="ORDERS_FEATURE_README.md" />
+    <None Include="REFACTORING_SUMMARY.md" />
   </ItemGroup>
 </Project>

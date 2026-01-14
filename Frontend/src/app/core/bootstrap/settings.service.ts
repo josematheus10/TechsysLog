@@ -3,7 +3,7 @@ import { MediaMatcher } from '@angular/cdk/layout';
 import { Injectable, inject, DOCUMENT } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { AppDirectionality, LocalStorageService } from '@shared';
-import { enUS, Locale, zhCN, zhTW } from 'date-fns/locale';
+import { enUS, Locale, ptBR, zhCN, zhTW } from 'date-fns/locale';
 import { BehaviorSubject } from 'rxjs';
 import { AppSettings, AppTheme, defaults } from '../settings';
 
@@ -31,9 +31,9 @@ export class SettingsService {
 
   options: AppSettings = Object.assign(defaults, this.storedOptions);
 
-  languages = ['en-US', 'zh-CN', 'zh-TW'];
+  languages = ['pt-BR', 'en-US', 'zh-CN', 'zh-TW'];
 
-  localeMap: Record<string, Locale> = { 'en-US': enUS, 'zh-CN': zhCN, 'zh-TW': zhTW };
+  localeMap: Record<string, Locale> = { 'pt-BR': ptBR, 'en-US': enUS, 'zh-CN': zhCN, 'zh-TW': zhTW };
 
   constructor() {
     this.translate.addLangs(this.languages);
@@ -85,7 +85,7 @@ export class SettingsService {
   getTranslateLang() {
     if (this.options.language === 'auto') {
       const browserLang = navigator.language;
-      return this.languages.includes(browserLang) ? browserLang : 'en-US';
+      return this.languages.includes(browserLang) ? browserLang : 'pt-BR';
     }
     return this.options.language;
   }

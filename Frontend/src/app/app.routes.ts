@@ -50,6 +50,10 @@ export const routes: Routes = [
         loadChildren: () => import('./routes/permissions/permissions.routes').then(m => m.routes),
       },
       {
+        path: 'orders',
+        loadChildren: () => import('./routes/orders/orders.routes').then(m => m.routes),
+      },
+      {
         path: 'utilities',
         loadChildren: () => import('./routes/utilities/utilities.routes').then(m => m.routes),
       },

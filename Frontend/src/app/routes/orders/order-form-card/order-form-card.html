@@ -1,0 +1,146 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Realizar Pedido</mat-card-title>
+    <button
+      mat-icon-button
+      (click)="toggleOrderForm()"
+      [attr.aria-label]="showOrderForm ? 'Fechar formulário' : 'Abrir formulário'"
+    >
+      <mat-icon>{{ showOrderForm ? 'expand_less' : 'expand_more' }}</mat-icon>
+    </button>
+  </mat-card-header>
+  <mat-card-content>
+    @if (!showOrderForm) {
+      <div class="order-card-content">
+        <p matListItemLine>
+          Crie um novo pedido preenchendo as informações necessárias e o endereço de entrega.
+        </p>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="toggleOrderForm()"
+          class="new-order-button"
+        >
+          <mat-icon>add_shopping_cart</mat-icon>
+          Novo Pedido
+        </button>
+      </div>
+    }
+
+    @if (showOrderForm) {
+      <form [formGroup]="orderForm" (ngSubmit)="onSubmitOrder()" class="order-form">
+        <!-- Informações do Pedido -->
+        <div class="form-section">
+          <p matListItemTitle>Informações do Pedido</p>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Número do Pedido</mat-label>
+            <input matInput formControlName="orderNumber" placeholder="Ex: PED-2024-001" />
+            <mat-error>{{ getErrorMessage('orderNumber') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Descrição</mat-label>
+            <textarea
+              matInput
+              formControlName="description"
+              rows="3"
+              placeholder="Descreva os itens do pedido"
+            ></textarea>
+            <mat-error>{{ getErrorMessage('description') }}</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Valor</mat-label>
+            <input
+              matInput
+              type="number"
+              formControlName="value"
+              placeholder="0.00"
+              step="0.01"
+            />
+            <span matTextPrefix>R$&nbsp;</span>
+            <mat-error>{{ getErrorMessage('value') }}</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Endereço de Entrega -->
+        <div class="form-section" formGroupName="deliveryAddress">
+          <p matListItemTitle>Endereço de Entrega</p>
+
+          <div class="cep-container">
+            <mat-form-field appearance="outline" class="cep-field">
+              <mat-label>CEP</mat-label>
+              <input matInput formControlName="cep" placeholder="12345-678" maxlength="9" />
+              <mat-error>{{ getErrorMessage('deliveryAddress.cep') }}</mat-error>
+            </mat-form-field>
+            @if (isLoadingCep) {
+              <mat-spinner diameter="24" class="cep-spinner"></mat-spinner>
+            }
+          </div>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Rua</mat-label>
+            <input matInput formControlName="street" placeholder="Nome da rua" />
+            <mat-error>{{ getErrorMessage('deliveryAddress.street') }}</mat-error>
+          </mat-form-field>
+
+          <div class="row-fields">
+            <mat-form-field appearance="outline" class="number-field">
+              <mat-label>Número</mat-label>
+              <input matInput id="number" formControlName="number" placeholder="123" />
+              <mat-error>{{ getErrorMessage('deliveryAddress.number') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="neighborhood-field">
+              <mat-label>Bairro</mat-label>
+              <input matInput formControlName="neighborhood" placeholder="Nome do bairro" />
+              <mat-error>{{ getErrorMessage('deliveryAddress.neighborhood') }}</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="row-fields">
+            <mat-form-field appearance="outline" class="city-field">
+              <mat-label>Cidade</mat-label>
+              <input matInput formControlName="city" placeholder="Nome da cidade" />
+              <mat-error>{{ getErrorMessage('deliveryAddress.city') }}</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="state-field">
+              <mat-label>Estado</mat-label>
+              <input
+                matInput
+                formControlName="state"
+                placeholder="UF"
+                maxlength="2"
+                style="text-transform: uppercase"
+              />
+              <mat-error>{{ getErrorMessage('deliveryAddress.state') }}</mat-error>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- Botões -->
+        <div class="form-actions">
+          <button
+            mat-raised-button
+            type="button"
+            (click)="toggleOrderForm()"
+            [disabled]="isSubmitting"
+          >
+            Cancelar
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="isSubmitting">
+            @if (isSubmitting) {
+              <mat-spinner
+                diameter="20"
+                style="display: inline-block; margin-right: 8px"
+              ></mat-spinner>
+            }
+            {{ isSubmitting ? 'Criando...' : 'Criar Pedido' }}
+          </button>
+        </div>
+      </form>
+    }
+  </mat-card-content>
+</mat-card>

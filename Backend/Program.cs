@@ -66,7 +66,7 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings!.Issuer,
-        ValidAudience = jwtSettings.Audience,
+        ValidAudience = jwtSettings.Audience, // somente para testes
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
         ClockSkew = TimeSpan.Zero
     };
@@ -77,15 +77,18 @@ builder.Services.AddAuthorization();
 
 // Add custom services
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IOrderStore, MongoOrderStore>();
 
 // Add CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials()
+              .SetIsOriginAllowed(origin => true);
     });
 });
 
@@ -95,31 +98,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
+    options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme
     {
-        Version = "v1",
-        Title = "TechsysLog API",
-        Description = "API para gerenciamento do sistema TechsysLog",
-        Contact = new OpenApiContact
-        {
-            Name = "TechsysLog Team",
-            Url = new Uri("https://github.com/josematheus10/TechsysLog")
-        }
-    });
-
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
         BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Insira o token JWT no formato: Bearer {seu token}"
+        Description = "JWT Authorization header using the Bearer scheme."
     });
 
-    options.AddSecurityRequirement(doc => new OpenApiSecurityRequirement
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        [new OpenApiSecuritySchemeReference("Bearer")] = new List<string>()
+        [new OpenApiSecuritySchemeReference("bearer", document)] = []
     });
 });
 
@@ -133,9 +122,10 @@ app.UseSwaggerUI(options =>
     options.DocumentTitle = "TechsysLog API Documentation";
 });
 
-app.UseHttpsRedirection();
-
+// CORS deve vir antes de UseHttpsRedirection
 app.UseCors("AllowAll");
+
+app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();

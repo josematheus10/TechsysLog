@@ -1,0 +1,125 @@
+mat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  padding: 24px 16px;
+  text-align: center;
+
+  .order-description {
+    margin-bottom: 24px;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .new-order-button {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 0 24px;
+  }
+}
+
+.order-form {
+  padding: 16px 0;
+}
+
+.form-section {
+  margin-bottom: 24px;
+
+  h3 {
+    margin-bottom: 16px;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.87);
+  }
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.cep-container {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+
+  .cep-field {
+    flex: 0 0 200px;
+  }
+
+  .cep-spinner {
+    margin-top: -8px;
+  }
+}
+
+.row-fields {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  mat-form-field {
+    flex: 1;
+  }
+
+  .number-field {
+    flex: 0 0 120px;
+  }
+
+  .neighborhood-field {
+    flex: 1;
+  }
+
+  .city-field {
+    flex: 1;
+  }
+
+  .state-field {
+    flex: 0 0 80px;
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  margin-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+  button {
+    min-width: 100px;
+  }
+}
+
+@media (width <= 599px) {
+  .row-fields {
+    flex-direction: column;
+
+    .number-field,
+    .neighborhood-field,
+    .city-field,
+    .state-field {
+      flex: 1 1 auto;
+    }
+  }
+
+  .cep-container {
+    flex-direction: column;
+    align-items: flex-start;
+
+    .cep-field {
+      flex: 1 1 auto;
+      width: 100%;
+    }
+  }
+}
