@@ -11,6 +11,7 @@ public interface IOrderStore
     Task<List<Order>> GetByUserIdAsync(string userId);
     Task<List<Order>> GetAllAsync();
     Task<bool> UpdateAsync(Order order);
+    Task<bool> UpdateStatusAsync(string id, string status);
     Task<bool> DeleteAsync(string id);
 }
 
@@ -63,6 +64,16 @@ public class MongoOrderStore : IOrderStore
         order.UpdatedAt = DateTime.UtcNow;
         var filter = Builders<Order>.Filter.Eq(o => o.Id, order.Id);
         var result = await _ordersCollection.ReplaceOneAsync(filter, order);
+        return result.ModifiedCount > 0;
+    }
+
+    public async Task<bool> UpdateStatusAsync(string id, string status)
+    {
+        var filter = Builders<Order>.Filter.Eq(o => o.Id, id);
+        var update = Builders<Order>.Update
+            .Set(o => o.Status, status)
+            .Set(o => o.UpdatedAt, DateTime.UtcNow);
+        var result = await _ordersCollection.UpdateOneAsync(filter, update);
         return result.ModifiedCount > 0;
     }
 

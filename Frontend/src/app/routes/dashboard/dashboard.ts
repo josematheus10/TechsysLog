@@ -13,6 +13,7 @@ import { MtxProgressModule } from '@ng-matero/extensions/progress';
 import { Subscription } from 'rxjs';
 import { CHARTS, ELEMENT_DATA, MESSAGES, STATS } from './data';
 import { OrderFormCard } from '../orders/order-form-card/order-form-card';
+import { OrdersList } from '../orders/orders-list/orders-list';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,6 +31,7 @@ import { OrderFormCard } from '../orders/order-form-card/order-form-card';
     MtxProgressModule,
     MtxAlertModule,
     OrderFormCard,
+    OrdersList,
   ],
 })
 export class Dashboard implements OnInit, AfterViewInit, OnDestroy {

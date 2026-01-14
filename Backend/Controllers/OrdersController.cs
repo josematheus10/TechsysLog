@@ -265,4 +265,83 @@ public class OrdersController : ControllerBase
             return StatusCode(500, new { message = "Erro interno ao buscar pedidos" });
         }
     }
+
+    /// <summary>
+    /// Atualiza o status de um pedido
+    /// </summary>
+    /// <param name="id">ID do pedido</param>
+    /// <param name="updateStatusDto">Novo status do pedido</param>
+    /// <returns>O pedido atualizado</returns>
+    [HttpPatch("{id}/status")]
+    [ProducesResponseType(typeof(OrderResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<OrderResponseDto>> UpdateOrderStatus(
+        string id, 
+        [FromBody] UpdateOrderStatusDto updateStatusDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            // Verificar se o pedido existe
+            var order = await _orderStore.GetByIdAsync(id);
+            if (order == null)
+            {
+                return NotFound(new { message = "Pedido não encontrado" });
+            }
+
+            // Atualizar o status
+            var updated = await _orderStore.UpdateStatusAsync(id, updateStatusDto.Status);
+            if (!updated)
+            {
+                return StatusCode(500, new { message = "Erro ao atualizar status do pedido" });
+            }
+
+            // Buscar o pedido atualizado
+            var updatedOrder = await _orderStore.GetByIdAsync(id);
+            if (updatedOrder == null)
+            {
+                return NotFound(new { message = "Pedido não encontrado após atualização" });
+            }
+
+            _logger.LogInformation(
+                "Status do pedido {OrderId} atualizado para {Status}", 
+                id, 
+                updateStatusDto.Status);
+
+            var response = new OrderResponseDto
+            {
+                Id = updatedOrder.Id,
+                OrderNumber = updatedOrder.OrderNumber,
+                Description = updatedOrder.Description,
+                Value = updatedOrder.Value,
+                DeliveryAddress = new DeliveryAddressDto
+                {
+                    Cep = updatedOrder.DeliveryAddress.Cep,
+                    Street = updatedOrder.DeliveryAddress.Street,
+                    Number = updatedOrder.DeliveryAddress.Number,
+                    Neighborhood = updatedOrder.DeliveryAddress.Neighborhood,
+                    City = updatedOrder.DeliveryAddress.City,
+                    State = updatedOrder.DeliveryAddress.State
+                },
+                Status = updatedOrder.Status,
+                UserId = updatedOrder.UserId,
+                UserName = updatedOrder.UserName,
+                CreatedAt = updatedOrder.CreatedAt,
+                UpdatedAt = updatedOrder.UpdatedAt
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Erro ao atualizar status do pedido {OrderId}", id);
+            return StatusCode(500, new { message = "Erro interno ao atualizar status do pedido" });
+        }
+    }
 }

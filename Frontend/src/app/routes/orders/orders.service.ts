@@ -24,10 +24,15 @@ export interface OrderResponse {
   description: string;
   value: number;
   deliveryAddress: DeliveryAddress;
+  status: string;
   userId: string;
   userName?: string;
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface UpdateOrderStatusRequest {
+  status: 'novo' | 'entregue';
 }
 
 @Injectable({
@@ -46,5 +51,9 @@ export class OrdersService {
 
   getOrderById(id: string): Observable<OrderResponse> {
     return this.http.get<OrderResponse>(`/api/Orders/${id}`);
+  }
+
+  updateOrderStatus(id: string, status: 'novo' | 'entregue'): Observable<OrderResponse> {
+    return this.http.patch<OrderResponse>(`/api/Orders/${id}/status`, { status });
   }
 }
