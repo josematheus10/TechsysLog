@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.3864779">
+﻿<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.3864779">
   <PropertyGroup>
     <StartupCommand>npm start</StartupCommand>
     <JavaScriptTestFramework>Jasmine</JavaScriptTestFramework>
@@ -7,4 +7,7 @@
     <!-- Folder where production build objects will be placed -->
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist\Frontend\browser\</BuildOutputFolder>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include=".vscode\mcp.json" />
+  </ItemGroup>
 </Project>

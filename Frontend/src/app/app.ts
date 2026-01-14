@@ -1,18 +1,24 @@
-import { Component, signal } from '@angular/core';
-import { AuthService } from './services/auth.service';
+import { Component, OnInit, AfterViewInit, inject } from '@angular/core';
+import { PreloaderService, SettingsService } from '@core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.html',
-  standalone: false,
-  styleUrl: './app.css'
+  template: `
+    <router-outlet />
+  `,
+  imports: [RouterOutlet],
 })
-export class App {
-  protected readonly title = signal('Frontend');
+export class App implements OnInit, AfterViewInit {
+  private readonly preloader = inject(PreloaderService);
+  private readonly settings = inject(SettingsService);
 
-  constructor(public authService: AuthService) {}
+  ngOnInit() {
+    this.settings.setDirection();
+    this.settings.setTheme();
+  }
 
-  logout() {
-    this.authService.logout();
+  ngAfterViewInit() {
+    this.preloader.hide();
   }
 }
