@@ -15,8 +15,8 @@ export class TranslateLangService {
 
       this.translate.setFallbackLang(defaultLang);
       this.translate.use(defaultLang).subscribe({
-        next: () => console.log(`Successfully initialized '${defaultLang}' language.'`),
-        error: () => console.error(`Problem with '${defaultLang}' language initialization.'`),
+        next: () => {},
+        error: () => {},
         complete: () => resolve(),
       });
     });

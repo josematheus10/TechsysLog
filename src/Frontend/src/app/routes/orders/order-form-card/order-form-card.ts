@@ -104,7 +104,6 @@ export class OrderFormCard implements OnInit {
           }, 100);
         },
         error: error => {
-          console.error('Erro ao buscar CEP:', error);
           this.snackBar.open(
             'Erro ao buscar CEP. Verifique se o CEP está correto.',
             'Fechar',
@@ -151,7 +150,6 @@ export class OrderFormCard implements OnInit {
           this.orderCreated.emit();
         },
         error: error => {
-          console.error('Erro ao criar pedido:', error);
           let errorMessage = 'Erro ao criar pedido. Tente novamente.';
 
           if (error.status === 409) {

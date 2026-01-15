@@ -36,10 +36,8 @@ export class PermissionsRoleSwitching implements OnInit, OnDestroy {
     this.currentPermissions = Object.keys(this.permissionsSrv.getPermissions());
 
     this.rolesSrv.roles$.pipe(takeUntil(this._destroy$)).subscribe(roles => {
-      console.log(roles);
     });
     this.permissionsSrv.permissions$.pipe(takeUntil(this._destroy$)).subscribe(permissions => {
-      console.log(permissions);
     });
   }
 

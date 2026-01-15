@@ -19,7 +19,6 @@ export class SignalRService {
     const token = this.tokenService.getBearerToken();
     
     if (!token) {
-      console.warn('Não foi possível iniciar a conexão SignalR: token não encontrado');
       return;
     }
 
@@ -33,26 +32,21 @@ export class SignalRService {
     this.hubConnection
       .start()
       .then(() => {
-        console.log('Conexão SignalR estabelecida com sucesso');
         this.connectionState.next(signalR.HubConnectionState.Connected);
       })
       .catch(err => {
-        console.error('Erro ao iniciar conexão SignalR:', err);
         this.connectionState.next(signalR.HubConnectionState.Disconnected);
       });
 
     this.hubConnection.onreconnecting(() => {
-      console.log('Reconectando SignalR...');
       this.connectionState.next(signalR.HubConnectionState.Reconnecting);
     });
 
     this.hubConnection.onreconnected(() => {
-      console.log('SignalR reconectado');
       this.connectionState.next(signalR.HubConnectionState.Connected);
     });
 
     this.hubConnection.onclose(() => {
-      console.log('Conexão SignalR fechada');
       this.connectionState.next(signalR.HubConnectionState.Disconnected);
     });
   }
@@ -61,8 +55,8 @@ export class SignalRService {
     if (this.hubConnection) {
       this.hubConnection
         .stop()
-        .then(() => console.log('Conexão SignalR encerrada'))
-        .catch(err => console.error('Erro ao encerrar conexão SignalR:', err));
+        .then(() => {})
+        .catch(err => {});
     }
   }
 
@@ -75,7 +69,6 @@ export class SignalRService {
         }
 
         this.hubConnection.on(eventName, (data: any) => {
-          console.log(`Evento SignalR recebido: ${eventName}`, data);
           observer.next(data);
         });
       };

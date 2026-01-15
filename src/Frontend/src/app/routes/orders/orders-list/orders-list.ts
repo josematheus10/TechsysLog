@@ -39,12 +39,10 @@ export class OrdersList implements OnInit, OnDestroy {
     this.subscription.add(
       this.ordersService.onNewOrder().subscribe({
         next: (order: OrderResponse) => {
-          console.log('Novo pedido recebido via SignalR:', order.orderNumber);
-          // Adicionar no início da lista (evita recarregar tudo)
           this.orders = [order, ...this.orders];
           this.snackBar.open(`Novo pedido #${order.orderNumber}`, 'Ver', { duration: 3000 });
         },
-        error: (err) => console.error('Erro ao receber notificação de novo pedido:', err)
+        error: (err) => {}
       })
     );
 
@@ -52,15 +50,13 @@ export class OrdersList implements OnInit, OnDestroy {
     this.subscription.add(
       this.ordersService.onOrderStatusChanged().subscribe({
         next: (updatedOrder: OrderResponse) => {
-          console.log('Status do pedido atualizado via SignalR:', updatedOrder.orderNumber);
           const index = this.orders.findIndex(o => o.id === updatedOrder.id);
           if (index !== -1) {
-            // Atualizar item específico na lista
             this.orders[index] = updatedOrder;
-            this.orders = [...this.orders]; // Trigger change detection
+            this.orders = [...this.orders];
           }
         },
-        error: (err) => console.error('Erro ao receber atualização de pedido:', err)
+        error: (err) => {}
       })
     );
   }
@@ -79,7 +75,6 @@ export class OrdersList implements OnInit, OnDestroy {
           this.orders = orders;
         },
         error: error => {
-          console.error('Erro ao carregar pedidos:', error);
           this.snackBar.open('Erro ao carregar pedidos', 'Fechar', { duration: 3000 });
         },
       });
@@ -99,7 +94,6 @@ export class OrdersList implements OnInit, OnDestroy {
           this.snackBar.open('Status atualizado com sucesso!', 'Fechar', { duration: 3000 });
         },
         error: error => {
-          console.error('Erro ao atualizar status:', error);
           this.snackBar.open('Erro ao atualizar status', 'Fechar', { duration: 3000 });
         },
       });

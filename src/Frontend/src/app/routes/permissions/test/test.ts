@@ -36,25 +36,20 @@ export class PermissionsTest {
   }
 
   unAuthorized() {
-    console.log('unAuthorized');
   }
 
   authorized() {
-    console.log('authorizes');
   }
 
   changeToAdmin() {
     this.comparedPermission = ['admin'];
-    console.log(this.comparedPermission);
   }
 
   changeToAnotherPermission() {
     this.comparedPermission = ['awesome'];
-    console.log(this.comparedPermission);
   }
 
   changeToGuest() {
     this.comparedPermission = ['guest'];
-    console.log(this.comparedPermission);
   }
 }

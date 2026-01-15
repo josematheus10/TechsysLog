@@ -28,12 +28,15 @@ export function errorInterceptor(req: HttpRequest<unknown>, next: HttpHandlerFn)
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
+      if (error.status >= 200 && error.status < 300) {
+        return throwError(() => error);
+      }
+      
       if (errorPages.includes(error.status)) {
         router.navigateByUrl(`/${error.status}`, {
           skipLocationChange: true,
         });
       } else {
-        console.error('ERROR', error);
         toast.error(getMessage(error));
         if (error.status === STATUS.UNAUTHORIZED) {
           router.navigateByUrl('/auth/login');

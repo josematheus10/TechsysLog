@@ -159,7 +159,7 @@ export class TablesKitchenSink implements OnInit {
       data: { record: value },
     });
 
-    dialogRef.afterClosed().subscribe(() => console.log('The dialog was closed'));
+    dialogRef.afterClosed().subscribe(() => {});
   }
 
   delete(value: any) {
@@ -167,11 +167,9 @@ export class TablesKitchenSink implements OnInit {
   }
 
   changeSelect(e: any) {
-    console.log(e);
   }
 
   changeSort(e: any) {
-    console.log(e);
   }
 
   enableRowExpandable() {

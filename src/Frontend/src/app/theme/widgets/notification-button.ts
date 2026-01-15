@@ -51,11 +51,10 @@ export class NotificationButton implements OnInit, OnDestroy {
     this.subscription.add(
       this.signalRService.on('new-order-notify').subscribe({
         next: (orderNumber: string) => {
-          console.log('Nova notificação recebida:', orderNumber);
           this.messages.unshift(`Novo pedido: ${orderNumber}`);
           this.notificationCount = this.messages.length;
         },
-        error: (err) => console.error('Erro ao receber notificação:', err)
+        error: (err) => {}
       })
     );
   }

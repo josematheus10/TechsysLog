@@ -46,7 +46,6 @@ private readonly signalRService = inject(SignalRService);
 
   charts = CHARTS;
   chart1?: ApexCharts;
-  chart2?: ApexCharts;
 
   stats = STATS;
 
@@ -109,39 +108,28 @@ private readonly signalRService = inject(SignalRService);
   ngOnInit() {
     this.signalRService.startConnection();
     
-    // Debug: Verificar estado da conexão
-    this.signalRService.connectionState$.subscribe(state => {
-      console.log('Estado da conexão SignalR:', state);
-    });
-    
     this.notifySubscription = this.settings.notify.subscribe(opts => {
-      console.log(opts);
 
       this.updateCharts();
     });
 
     // Escutar evento de novo pedido
     this.newOrderSubscription = this.signalRService.on('new-order-notify').subscribe((data) => {
-      console.log('Evento new-order-notify recebido:', data);
       const timestamp = new Date().getTime();
       this.newOrderTimestamps.push(timestamp);
-      console.log('Total de timestamps de novos pedidos:', this.newOrderTimestamps.length);
       this.updateRealtimeChart();
     });
 
     // Escutar evento de pedido entregue
     this.deliveredOrderSubscription = this.signalRService.on('delivered-order-notify').subscribe((data) => {
-      console.log('Evento delivered-order-notify recebido:', data);
       const timestamp = new Date().getTime();
       this.deliveredOrderTimestamps.push(timestamp);
-      console.log('Total de timestamps de pedidos entregues:', this.deliveredOrderTimestamps.length);
       this.updateRealtimeChart();
     });
   }
 
   onOrderCreated(): void {
     // Callback opcional quando um pedido é criado
-    console.log('Pedido criado com sucesso!');
   }
 
   ngAfterViewInit() {
@@ -150,7 +138,6 @@ private readonly signalRService = inject(SignalRService);
 
   ngOnDestroy() {
     this.chart1?.destroy();
-    this.chart2?.destroy();
 
     this.notifySubscription.unsubscribe();
     this.newOrderSubscription.unsubscribe();
@@ -166,8 +153,6 @@ private readonly signalRService = inject(SignalRService);
   initCharts() {
     this.chart1 = new ApexCharts(document.querySelector('#chart1'), this.charts[0]);
     this.chart1?.render();
-    this.chart2 = new ApexCharts(document.querySelector('#chart2'), this.charts[1]);
-    this.chart2?.render();
 
     this.updateCharts();
     
@@ -190,26 +175,6 @@ private readonly signalRService = inject(SignalRService);
       },
       grid: {
         borderColor: isDark ? '#5a5a5a' : '#e1e1e1',
-      },
-    });
-
-    this.chart2?.updateOptions({
-      chart: {
-        foreColor: isDark ? '#ccc' : '#333',
-      },
-      plotOptions: {
-        radar: {
-          polygons: {
-            strokeColors: isDark ? '#5a5a5a' : '#e1e1e1',
-            connectorColors: isDark ? '#5a5a5a' : '#e1e1e1',
-            fill: {
-              colors: isDark ? ['#2c2c2c', '#222'] : ['#f2f2f2', '#fff'],
-            },
-          },
-        },
-      },
-      tooltip: {
-        theme: isDark ? 'dark' : 'light',
       },
     });
   }
@@ -290,10 +255,6 @@ private readonly signalRService = inject(SignalRService);
     this.newOrderData = [];
     this.deliveredOrderData = [];
 
-    console.log('Reconstruindo gráfico:');
-    console.log('- Timestamps de novos pedidos:', this.newOrderTimestamps.length);
-    console.log('- Timestamps de pedidos entregues:', this.deliveredOrderTimestamps.length);
-
     // Criar intervalos de tempo (a cada 10 segundos)
     const intervalCount = Math.ceil((endTime - startTime) / this.aggregationInterval);
     
@@ -313,9 +274,6 @@ private readonly signalRService = inject(SignalRService);
       this.newOrderData.push([intervalStart, newOrdersInInterval]);
       this.deliveredOrderData.push([intervalStart, deliveredOrdersInInterval]);
     }
-
-    console.log('- Pontos no gráfico (novos pedidos):', this.newOrderData.length);
-    console.log('- Pontos no gráfico (entregues):', this.deliveredOrderData.length);
   }
 
   updateTimeRange(start: number, end: number) {
