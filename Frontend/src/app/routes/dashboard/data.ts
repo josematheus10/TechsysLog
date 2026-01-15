@@ -89,55 +89,87 @@ export const STATS = [
 ];
 
 export const CHARTS: ApexOptions[] = [
-  {
-    chart: {
-      height: 350,
-      type: 'area',
-      toolbar: {
-        show: false,
-      },
-      zoom: {
-        enabled: false,
+{
+  chart: {
+    height: 350,
+    type: 'area',
+    animations: {
+      enabled: true,
+      dynamicAnimation: {
+        speed: 1000,
       },
     },
-    dataLabels: {
+    toolbar: {
+      show: false,
+    },
+    zoom: {
       enabled: false,
     },
-    stroke: {
-      curve: 'smooth',
-    },
-    series: [
-      {
-        name: 'UV',
-        data: [31, 40, 28, 51, 42, 109, 100],
-      },
-      {
-        name: 'Download',
-        data: [11, 32, 45, 32, 34, 52, 41],
-      },
-    ],
-    xaxis: {
-      type: 'datetime',
-      categories: [
-        '2019-11-24T00:00:00',
-        '2019-11-24T01:30:00',
-        '2019-11-24T02:30:00',
-        '2019-11-24T03:30:00',
-        '2019-11-24T04:30:00',
-        '2019-11-24T05:30:00',
-        '2019-11-24T06:30:00',
-      ],
-    },
-    tooltip: {
-      x: {
-        format: 'dd/MM/yy HH:mm',
-      },
-    },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'right',
+  },
+  dataLabels: {
+    enabled: false,
+  },
+  stroke: {
+    curve: 'smooth',
+    width: 3,
+  },
+  fill: {
+    type: 'gradient',
+    gradient: {
+      shadeIntensity: 1,
+      opacityFrom: 0.7,
+      opacityTo: 0.2,
+      stops: [0, 90, 100],
     },
   },
+  grid: {
+    show: false,
+  },
+  series: [
+    {
+      name: 'Novos Pedidos',
+      data: [],
+    },
+    {
+      name: 'Pedidos Entregues',
+      data: [],
+    },
+  ],
+  colors: ['#00E396', '#008FFB'],
+  xaxis: {
+    type: 'datetime',
+    labels: {
+      datetimeUTC: false,
+      format: 'HH:mm:ss',
+    },
+    range: 3 * 60 * 1000, // 3 minutos em milissegundos
+    axisBorder: {
+      show: true,
+    },
+    axisTicks: {
+      show: false,
+    },
+  },
+  yaxis: {
+    labels: {
+      formatter: (val: number) => Math.floor(val).toString(),
+    },
+    title: {
+      text: 'Quantidade',
+    },
+    forceNiceScale: true,
+    min: 0,
+  },
+  tooltip: {
+    x: {
+      format: 'dd/MM/yyyy HH:mm:ss',
+    },
+  },
+  legend: {
+    position: 'top',
+    horizontalAlign: 'right',
+  },
+},
   {
     chart: {
       height: 350,

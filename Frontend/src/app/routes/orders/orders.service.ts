@@ -43,8 +43,12 @@ export class OrdersService {
   protected readonly http = inject(HttpClient);
   private readonly signalRService = inject(SignalRService);
 
-  onNewOrder(): Observable<string> {
+  onNewOrder(): Observable<OrderResponse> {
     return this.signalRService.on('new-order');
+  }
+
+  onOrderStatusChanged(): Observable<OrderResponse> {
+    return this.signalRService.on('order-status-changed');
   }
 
   createOrder(order: CreateOrderRequest): Observable<OrderResponse> {

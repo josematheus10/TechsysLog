@@ -35,13 +35,32 @@ export class OrdersList implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadOrders();
     
+    // Escutar novos pedidos
     this.subscription.add(
       this.ordersService.onNewOrder().subscribe({
-        next: (orderNumber: string) => {
-          console.log('Novo pedido recebido via SignalR:', orderNumber);
-          this.loadOrders();
+        next: (order: OrderResponse) => {
+          console.log('Novo pedido recebido via SignalR:', order.orderNumber);
+          // Adicionar no início da lista (evita recarregar tudo)
+          this.orders = [order, ...this.orders];
+          this.snackBar.open(`Novo pedido #${order.orderNumber}`, 'Ver', { duration: 3000 });
         },
         error: (err) => console.error('Erro ao receber notificação de novo pedido:', err)
+      })
+    );
+
+    // Escutar mudanças de status
+    this.subscription.add(
+      this.ordersService.onOrderStatusChanged().subscribe({
+        next: (updatedOrder: OrderResponse) => {
+          console.log('Status do pedido atualizado via SignalR:', updatedOrder.orderNumber);
+          const index = this.orders.findIndex(o => o.id === updatedOrder.id);
+          if (index !== -1) {
+            // Atualizar item específico na lista
+            this.orders[index] = updatedOrder;
+            this.orders = [...this.orders]; // Trigger change detection
+          }
+        },
+        error: (err) => console.error('Erro ao receber atualização de pedido:', err)
       })
     );
   }

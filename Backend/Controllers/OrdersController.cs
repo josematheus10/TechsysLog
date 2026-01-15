@@ -96,9 +96,6 @@ public class OrdersController : ControllerBase
             _logger.LogInformation("Pedido {OrderNumber} criado com sucesso pelo usuário {UserId}", 
                 createdOrder.OrderNumber, userId);
 
-            // Emitir evento SignalR
-            await _hubContext.Clients.All.SendAsync("new-order", createdOrder.OrderNumber);
-
             var response = new OrderResponseDto
             {
                 Id = createdOrder.Id,
@@ -120,6 +117,11 @@ public class OrdersController : ControllerBase
                 CreatedAt = createdOrder.CreatedAt,
                 UpdatedAt = createdOrder.UpdatedAt
             };
+
+            // Emitir evento SignalR com o pedido completo
+            await _hubContext.Clients.All.SendAsync("new-order", response);
+
+            await _hubContext.Clients.All.SendAsync("new-order-notify", response.OrderNumber);
 
             return CreatedAtAction(nameof(GetOrderById), new { id = createdOrder.Id }, response);
         }
@@ -343,6 +345,25 @@ public class OrdersController : ControllerBase
                 CreatedAt = updatedOrder.CreatedAt,
                 UpdatedAt = updatedOrder.UpdatedAt
             };
+
+            // Emitir evento SignalR com o pedido completo
+            await _hubContext.Clients.All.SendAsync("order-status-changed", response);
+
+            // Emitir evento específico para atualização do dashboard
+            if (updateStatusDto.Status == "entregue")
+            {
+                _logger.LogInformation("Emitindo evento delivered-order-notify para pedido {OrderNumber}", updatedOrder.OrderNumber);
+                await _hubContext.Clients.All.SendAsync("delivered-order-notify", updatedOrder.OrderNumber);
+            }
+
+
+            // Emitir evento específico para atualização do dashboard
+            if (updateStatusDto.Status == "novo")
+            {
+                _logger.LogInformation("Emitindo evento new-order-notify para pedido {OrderNumber}", response.OrderNumber);
+                await _hubContext.Clients.All.SendAsync("new-order-notify", response.OrderNumber);
+            }
+
 
             return Ok(response);
         }

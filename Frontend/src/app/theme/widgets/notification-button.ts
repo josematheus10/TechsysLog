@@ -49,7 +49,7 @@ export class NotificationButton implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Inscrever-se no evento de novas ordens
     this.subscription.add(
-      this.signalRService.on('new-order').subscribe({
+      this.signalRService.on('new-order-notify').subscribe({
         next: (orderNumber: string) => {
           console.log('Nova notificação recebida:', orderNumber);
           this.messages.unshift(`Novo pedido: ${orderNumber}`);
