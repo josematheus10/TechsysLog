@@ -6,7 +6,6 @@ import { MatGridListModule } from '@angular/material/grid-list';
 import { MatListModule } from '@angular/material/list';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
-import { RouterLink } from '@angular/router';
 import { SettingsService, SignalRService } from '@core';
 import { MtxAlertModule } from '@ng-matero/extensions/alert';
 import { MtxProgressModule } from '@ng-matero/extensions/progress';
@@ -20,7 +19,6 @@ import { OrdersList } from '../orders/orders-list/orders-list';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
   imports: [
-    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatChipsModule,
@@ -69,6 +67,9 @@ private readonly signalRService = inject(SignalRService);
   
   // Timer para atualizar o gráfico continuamente
   private chartUpdateInterval?: number;
+  
+  // Manter escala Y estável (iniciar com 10)
+  private currentYAxisMax = 10;
 
   introducingItems = [
     {
@@ -115,14 +116,14 @@ private readonly signalRService = inject(SignalRService);
 
     // Escutar evento de novo pedido
     this.newOrderSubscription = this.signalRService.on('new-order-notify').subscribe((data) => {
-      const timestamp = new Date().getTime();
+      const timestamp = this.roundToSeconds(new Date().getTime());
       this.newOrderTimestamps.push(timestamp);
       this.updateRealtimeChart();
     });
 
     // Escutar evento de pedido entregue
     this.deliveredOrderSubscription = this.signalRService.on('delivered-order-notify').subscribe((data) => {
-      const timestamp = new Date().getTime();
+      const timestamp = this.roundToSeconds(new Date().getTime());
       this.deliveredOrderTimestamps.push(timestamp);
       this.updateRealtimeChart();
     });
@@ -130,6 +131,11 @@ private readonly signalRService = inject(SignalRService);
 
   onOrderCreated(): void {
     // Callback opcional quando um pedido é criado
+  }
+
+  // Arredondar timestamp para segundos (remover milissegundos)
+  private roundToSeconds(timestamp: number): number {
+    return Math.floor(timestamp / 1000) * 1000;
   }
 
   ngAfterViewInit() {
@@ -185,8 +191,8 @@ private readonly signalRService = inject(SignalRService);
 
   initializeChartData() {
     // Inicializar o gráfico com a janela de 3 minutos
-    // 3 minutos para trás até agora
-    const now = new Date().getTime();
+    // 3 minutos para trás até agora (arredondar para segundos)
+    const now = this.roundToSeconds(new Date().getTime());
     const threeMinutesAgo = now - (3 * 60 * 1000);
     
     this.newOrderData = [[threeMinutesAgo, 0]];
@@ -218,7 +224,7 @@ private readonly signalRService = inject(SignalRService);
   updateRealtimeChart() {
     if (!this.chart1) return;
 
-    const now = new Date().getTime();
+    const now = this.roundToSeconds(new Date().getTime());
     const threeMinutesAgo = now - (3 * 60 * 1000);
 
     // Limpar timestamps antigos (mais de 3 minutos)
@@ -230,22 +236,37 @@ private readonly signalRService = inject(SignalRService);
 
     this.updateTimeRange(threeMinutesAgo, now);
 
+    // Calcular escala Y estável
+    this.currentYAxisMax = this.calculateStableYAxisMax(this.currentYAxisMax);
+
+    // Garantir que os dados nunca estejam vazios antes de atualizar
+    const newOrderDataToUpdate = this.newOrderData.length > 0 
+      ? [...this.newOrderData] 
+      : [[threeMinutesAgo, 0], [now, 0]];
+    
+    const deliveredOrderDataToUpdate = this.deliveredOrderData.length > 0 
+      ? [...this.deliveredOrderData] 
+      : [[threeMinutesAgo, 0], [now, 0]];
+
     this.ngZone.run(() => {
       this.chart1?.updateSeries([
         {
           name: 'Novos Pedidos',
-          data: [...this.newOrderData],
+          data: newOrderDataToUpdate,
         },
         {
           name: 'Pedidos Entregues',
-          data: [...this.deliveredOrderData],
+          data: deliveredOrderDataToUpdate,
         },
-      ]);
+      ], false);
 
       this.chart1?.updateOptions({
         xaxis: {
           min: threeMinutesAgo,
           max: now,
+        },
+        yaxis: {
+          max: this.currentYAxisMax,
         },
       });
     });
@@ -255,11 +276,11 @@ private readonly signalRService = inject(SignalRService);
     this.newOrderData = [];
     this.deliveredOrderData = [];
 
-    // Criar intervalos de tempo (a cada 10 segundos)
+    // Criar intervalos de tempo (a cada 10 segundos), garantindo que sejam arredondados
     const intervalCount = Math.ceil((endTime - startTime) / this.aggregationInterval);
     
     for (let i = 0; i <= intervalCount; i++) {
-      const intervalStart = startTime + (i * this.aggregationInterval);
+      const intervalStart = this.roundToSeconds(startTime + (i * this.aggregationInterval));
       const intervalEnd = intervalStart + this.aggregationInterval;
       
       // Contar eventos neste intervalo
@@ -273,6 +294,14 @@ private readonly signalRService = inject(SignalRService);
       
       this.newOrderData.push([intervalStart, newOrdersInInterval]);
       this.deliveredOrderData.push([intervalStart, deliveredOrdersInInterval]);
+    }
+
+    // Garantir que sempre haja pelo menos 2 pontos para cada série (evita linhas sumindo)
+    if (this.newOrderData.length === 0) {
+      this.newOrderData = [[startTime, 0], [endTime, 0]];
+    }
+    if (this.deliveredOrderData.length === 0) {
+      this.deliveredOrderData = [[startTime, 0], [endTime, 0]];
     }
   }
 
@@ -289,6 +318,43 @@ private readonly signalRService = inject(SignalRService);
     this.chartTimeRange = `${formatTime(startDate)} - ${formatTime(endDate)}`;
   }
 
+  // Calcular escala Y estável usando valores "nice"
+  private calculateStableYAxisMax(currentMax: number): number {
+    const maxNewOrders = Math.max(...this.newOrderData.map(d => d[1]), 0);
+    const maxDeliveredOrders = Math.max(...this.deliveredOrderData.map(d => d[1]), 0);
+    const maxValue = Math.max(maxNewOrders, maxDeliveredOrders);
+    
+    // Definir múltiplo base (10 para valores maiores, 5 para menores)
+    const step = maxValue > 20 ? 10 : 5;
+    
+    // Adicionar margem de 30% para ter espaço no gráfico
+    const targetMax = Math.ceil((maxValue * 1.3) / step) * step;
+    
+    // Garantir mínimo de 10
+    const calculatedMax = Math.max(targetMax, 10);
+    
+    // Se não houver máximo atual definido (primeira vez ou reset), usar o calculado
+    if (currentMax === 10 && maxValue === 0) {
+      return 10; // Manter em 10 se não houver dados ainda
+    }
+    
+    // Só aumentar se o valor máximo ultrapassar 85% da escala atual
+    if (maxValue > currentMax * 0.85) {
+      console.log(`📈 Aumentando escala: maxValue=${maxValue}, currentMax=${currentMax} → newMax=${calculatedMax}`);
+      return calculatedMax;
+    }
+    
+    // Só diminuir se o valor máximo for menor que 40% da escala atual
+    // E se a diferença for significativa (pelo menos 2 steps)
+    if (maxValue < currentMax * 0.4 && (currentMax - calculatedMax) >= (step * 2)) {
+      console.log(`📉 Diminuindo escala: maxValue=${maxValue}, currentMax=${currentMax} → newMax=${calculatedMax}`);
+      return calculatedMax;
+    }
+    
+    // Manter escala atual (maior estabilidade)
+    return currentMax;
+  }
+
   startChartAutoUpdate() {
     // Atualizar o gráfico a cada 1 segundo para dar impressão de tempo real
     this.chartUpdateInterval = window.setInterval(() => {
@@ -299,7 +365,7 @@ private readonly signalRService = inject(SignalRService);
   updateChartWindow() {
     if (!this.chart1) return;
 
-    const now = new Date().getTime();
+    const now = this.roundToSeconds(new Date().getTime());
     const threeMinutesAgo = now - (3 * 60 * 1000);
 
     // Limpar timestamps antigos
@@ -311,22 +377,37 @@ private readonly signalRService = inject(SignalRService);
 
     this.updateTimeRange(threeMinutesAgo, now);
 
+    // Calcular escala Y estável
+    this.currentYAxisMax = this.calculateStableYAxisMax(this.currentYAxisMax);
+
+    // Garantir que os dados nunca estejam vazios antes de atualizar
+    const newOrderDataToUpdate = this.newOrderData.length > 0 
+      ? [...this.newOrderData] 
+      : [[threeMinutesAgo, 0], [now, 0]];
+    
+    const deliveredOrderDataToUpdate = this.deliveredOrderData.length > 0 
+      ? [...this.deliveredOrderData] 
+      : [[threeMinutesAgo, 0], [now, 0]];
+
     this.ngZone.run(() => {
       this.chart1?.updateSeries([
         {
           name: 'Novos Pedidos',
-          data: [...this.newOrderData],
+          data: newOrderDataToUpdate,
         },
         {
           name: 'Pedidos Entregues',
-          data: [...this.deliveredOrderData],
+          data: deliveredOrderDataToUpdate,
         },
-      ]);
+      ], false);
 
       this.chart1?.updateOptions({
         xaxis: {
           min: threeMinutesAgo,
           max: now,
+        },
+        yaxis: {
+          max: this.currentYAxisMax,
         },
       });
     });

@@ -1,4 +1,4 @@
-import { CdkDrag, CdkDragStart } from '@angular/cdk/drag-drop';
+import { CdkDragStart } from '@angular/cdk/drag-drop';
 import {
   Component,
   EventEmitter,
@@ -28,7 +28,6 @@ import { DisableControl } from '@shared';
   imports: [
     FormsModule,
     ReactiveFormsModule,
-    CdkDrag,
     MatButtonModule,
     MatDividerModule,
     MatIconModule,

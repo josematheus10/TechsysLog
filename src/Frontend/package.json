@@ -9,7 +9,6 @@
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.config.js --open",
     "start:no-proxy": "ng serve",
-    "diagnostico": "node diagnostico-proxy.js",
     "build": "ng build",
     "test": "ng test",
     "e2e": "ng e2e",
@@ -18,8 +17,7 @@
     "lint:ts": "eslint \"src/**/*.ts\" --fix",
     "lint:scss": "stylelint \"src/**/*.scss\" --fix",
     "hmr": "ng serve --hmr",
-    "analyze": "ng build --stats-json && webpack-bundle-analyzer dist/starter/stats.json",
-    "prepare": "is-ci || husky"
+    "analyze": "ng build --stats-json && webpack-bundle-analyzer dist/starter/stats.json"
   },
   "private": true,
   "dependencies": {
@@ -65,7 +63,6 @@
     "@types/node": "^24.5.0",
     "angular-eslint": "^20.3.0",
     "eslint": "^9.36.0",
-    "husky": "^9.1.6",
     "is-ci": "^4.1.0",
     "jasmine-core": "~5.1.0",
     "jasmine-spec-reporter": "~7.0.0",

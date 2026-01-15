@@ -94,10 +94,7 @@ export const CHARTS: ApexOptions[] = [
     height: 350,
     type: 'area',
     animations: {
-      enabled: true,
-      dynamicAnimation: {
-        speed: 1000,
-      },
+      enabled: false,
     },
     toolbar: {
       show: false,
@@ -157,8 +154,9 @@ export const CHARTS: ApexOptions[] = [
     title: {
       text: 'Quantidade',
     },
-    forceNiceScale: true,
     min: 0,
+    max: 10,
+    tickAmount: 5,
   },
   tooltip: {
     x: {
