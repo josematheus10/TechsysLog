@@ -19,7 +19,7 @@ O Objetivo do projeto é demonstar o uso do .NET 10 em conjunto com Angular para
 - **.NET 10** - Framework principal
 - **MongoDB** - Banco de dados NoSQL
 - **Identity** - Sistema de autenticação e autorização
-- **[BrasilAPI](https://github.com/BrasilAPI/BrasilAPI)	** - Integração com API de CEP
+- **[BrasilAPI](https://github.com/BrasilAPI/BrasilAPI)** - Integração com API de CEP
 
 ### Frontend
 - **Angular** - Framework frontend
