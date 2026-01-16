@@ -47,18 +47,17 @@ A forma mais simples de executar o projeto é usando Docker Compose, que irá in
 ```bash
 # Clone o repositório
 git clone https://github.com/josematheus10/TechsysLog.git
-cd TechsysLog
+cd TechsysLog/src
 
 # Execute todos os serviços
-docker-compose up -d
+docker compose up -d
 
 # Visualize os logs (opcional)
-docker-compose logs -f
+docker compose logs -f
 
 # Acesse a aplicação
 # Frontend: http://localhost:4200
-# Backend API: http://localhost:5000
-# Swagger (Documentação da API): http://localhost:5000/swagger
+# Backend API: http://localhost:8080/swagger/index.html
 # MongoDB: localhost:27017
 ```
 
