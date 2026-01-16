@@ -105,6 +105,7 @@
   "system": "Sistema",
   "position": "Posição",
   "name": "Nome",
+  "full_name": "Nome Completo",
   "weight": "Peso",
   "symbol": "Símbolo",
   "gender": "Gênero",

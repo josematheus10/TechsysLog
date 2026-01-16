@@ -19,8 +19,8 @@ RUN npm run build
 FROM nginx:alpine
 
 # Copy the built application from the build stage
-# Angular outputs to dist/frontend/browser with the new builder
-COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
+# Angular outputs to dist/starter/browser with the new builder
+COPY --from=build /app/dist/starter/browser /usr/share/nginx/html
 
 # Copy custom nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf

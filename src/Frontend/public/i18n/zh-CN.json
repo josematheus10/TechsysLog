@@ -104,6 +104,7 @@
   "system": "跟随系统",
   "position": "序号",
   "name": "姓名",
+  "full_name": "全名",
   "weight": "体重",
   "symbol": "代号",
   "gender": "性别",
