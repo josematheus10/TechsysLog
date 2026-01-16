@@ -1,7 +1,9 @@
-using Backend.Data;
+using Backend.DTOs.Request;
+using Backend.DTOs.Response;
 using Backend.Hubs;
+using Backend.Mappers;
 using Backend.Models;
-using Backend.Models.DTOs;
+using Backend.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,18 +17,18 @@ namespace Backend.Controllers;
 [Authorize]
 public class OrdersController : ControllerBase
 {
-    private readonly IOrderStore _orderStore;
+    private readonly IOrderRepository _orderRepository;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ILogger<OrdersController> _logger;
     private readonly IHubContext<OrdersHub> _hubContext;
 
     public OrdersController(
-        IOrderStore orderStore,
+        IOrderRepository orderRepository,
         UserManager<ApplicationUser> userManager,
         ILogger<OrdersController> logger,
         IHubContext<OrdersHub> hubContext)
     {
-        _orderStore = orderStore;
+        _orderRepository = orderRepository;
         _userManager = userManager;
         _logger = logger;
         _hubContext = hubContext;
@@ -66,59 +68,24 @@ public class OrdersController : ControllerBase
             }
 
             // Verificar se já existe um pedido com o mesmo número
-            var existingOrder = await _orderStore.GetByOrderNumberAsync(createOrderDto.OrderNumber);
+            var existingOrder = await _orderRepository.GetByOrderNumberAsync(createOrderDto.OrderNumber);
             if (existingOrder != null)
             {
                 return Conflict(new { message = "Já existe um pedido com este número" });
             }
 
-            // Criar o pedido
-            var order = new Order
-            {
-                OrderNumber = createOrderDto.OrderNumber,
-                Description = createOrderDto.Description,
-                Value = createOrderDto.Value,
-                DeliveryAddress = new DeliveryAddress
-                {
-                    Cep = createOrderDto.DeliveryAddress.Cep,
-                    Street = createOrderDto.DeliveryAddress.Street,
-                    Number = createOrderDto.DeliveryAddress.Number,
-                    Neighborhood = createOrderDto.DeliveryAddress.Neighborhood,
-                    City = createOrderDto.DeliveryAddress.City,
-                    State = createOrderDto.DeliveryAddress.State.ToUpper()
-                },
-                UserId = userId,
-                UserName = user.UserName
-            };
+            // Criar o pedido usando o mapper
+            var order = createOrderDto.ToModel(userId, user.UserName);
 
-            var createdOrder = await _orderStore.CreateAsync(order);
+            var createdOrder = await _orderRepository.CreateAsync(order);
 
             _logger.LogInformation("Pedido {OrderNumber} criado com sucesso pelo usuário {UserId}", 
                 createdOrder.OrderNumber, userId);
 
-            var response = new OrderResponseDto
-            {
-                Id = createdOrder.Id,
-                OrderNumber = createdOrder.OrderNumber,
-                Description = createdOrder.Description,
-                Value = createdOrder.Value,
-                DeliveryAddress = new DeliveryAddressDto
-                {
-                    Cep = createdOrder.DeliveryAddress.Cep,
-                    Street = createdOrder.DeliveryAddress.Street,
-                    Number = createdOrder.DeliveryAddress.Number,
-                    Neighborhood = createdOrder.DeliveryAddress.Neighborhood,
-                    City = createdOrder.DeliveryAddress.City,
-                    State = createdOrder.DeliveryAddress.State
-                },
-                Status = createdOrder.Status,
-                UserId = createdOrder.UserId,
-                UserName = createdOrder.UserName,
-                CreatedAt = createdOrder.CreatedAt,
-                UpdatedAt = createdOrder.UpdatedAt
-            };
+            // Converter para DTO usando o mapper
+            var response = createdOrder.ToDto();
 
-            // Emitir evento SignalR com o pedido completo
+            // Emitir evento para atualizar a lista de pedidos em tempo real
             await _hubContext.Clients.All.SendAsync("new-order", response);
 
             await _hubContext.Clients.All.SendAsync("new-order-notify", response.OrderNumber);
@@ -145,33 +112,13 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            var order = await _orderStore.GetByIdAsync(id);
+            var order = await _orderRepository.GetByIdAsync(id);
             if (order == null)
             {
                 return NotFound(new { message = "Pedido não encontrado" });
             }
 
-            var response = new OrderResponseDto
-            {
-                Id = order.Id,
-                OrderNumber = order.OrderNumber,
-                Description = order.Description,
-                Value = order.Value,
-                DeliveryAddress = new DeliveryAddressDto
-                {
-                    Cep = order.DeliveryAddress.Cep,
-                    Street = order.DeliveryAddress.Street,
-                    Number = order.DeliveryAddress.Number,
-                    Neighborhood = order.DeliveryAddress.Neighborhood,
-                    City = order.DeliveryAddress.City,
-                    State = order.DeliveryAddress.State
-                },
-                Status = order.Status,
-                UserId = order.UserId,
-                UserName = order.UserName,
-                CreatedAt = order.CreatedAt,
-                UpdatedAt = order.UpdatedAt
-            };
+            var response = order.ToDto();
 
             return Ok(response);
         }
@@ -182,55 +129,6 @@ public class OrdersController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Obtém todos os pedidos do usuário autenticado
-    /// </summary>
-    /// <returns>Lista de pedidos do usuário</returns>
-    [HttpGet("my-orders")]
-    [ProducesResponseType(typeof(List<OrderResponseDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<List<OrderResponseDto>>> GetMyOrders()
-    {
-        try
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized("Usuário não autenticado");
-            }
-
-            var orders = await _orderStore.GetByUserIdAsync(userId);
-            
-            var response = orders.Select(order => new OrderResponseDto
-            {
-                Id = order.Id,
-                OrderNumber = order.OrderNumber,
-                Description = order.Description,
-                Value = order.Value,
-                DeliveryAddress = new DeliveryAddressDto
-                {
-                    Cep = order.DeliveryAddress.Cep,
-                    Street = order.DeliveryAddress.Street,
-                    Number = order.DeliveryAddress.Number,
-                    Neighborhood = order.DeliveryAddress.Neighborhood,
-                    City = order.DeliveryAddress.City,
-                    State = order.DeliveryAddress.State
-                },
-                Status = order.Status,
-                UserId = order.UserId,
-                UserName = order.UserName,
-                CreatedAt = order.CreatedAt,
-                UpdatedAt = order.UpdatedAt
-            }).ToList();
-
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Erro ao buscar pedidos do usuário");
-            return StatusCode(500, new { message = "Erro interno ao buscar pedidos" });
-        }
-    }
 
     /// <summary>
     /// Obtém todos os pedidos (requer autenticação)
@@ -243,29 +141,9 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            var orders = await _orderStore.GetAllAsync();
+            var orders = await _orderRepository.GetAllAsync();
             
-            var response = orders.Select(order => new OrderResponseDto
-            {
-                Id = order.Id,
-                OrderNumber = order.OrderNumber,
-                Description = order.Description,
-                Value = order.Value,
-                DeliveryAddress = new DeliveryAddressDto
-                {
-                    Cep = order.DeliveryAddress.Cep,
-                    Street = order.DeliveryAddress.Street,
-                    Number = order.DeliveryAddress.Number,
-                    Neighborhood = order.DeliveryAddress.Neighborhood,
-                    City = order.DeliveryAddress.City,
-                    State = order.DeliveryAddress.State
-                },
-                Status = order.Status,
-                UserId = order.UserId,
-                UserName = order.UserName,
-                CreatedAt = order.CreatedAt,
-                UpdatedAt = order.UpdatedAt
-            }).ToList();
+            var response = orders.ToDto().ToList();
 
             return Ok(response);
         }
@@ -299,21 +177,21 @@ public class OrdersController : ControllerBase
         try
         {
             // Verificar se o pedido existe
-            var order = await _orderStore.GetByIdAsync(id);
+            var order = await _orderRepository.GetByIdAsync(id);
             if (order == null)
             {
                 return NotFound(new { message = "Pedido não encontrado" });
             }
 
             // Atualizar o status
-            var updated = await _orderStore.UpdateStatusAsync(id, updateStatusDto.Status);
+            var updated = await _orderRepository.UpdateStatusAsync(id, updateStatusDto.Status);
             if (!updated)
             {
                 return StatusCode(500, new { message = "Erro ao atualizar status do pedido" });
             }
 
             // Buscar o pedido atualizado
-            var updatedOrder = await _orderStore.GetByIdAsync(id);
+            var updatedOrder = await _orderRepository.GetByIdAsync(id);
             if (updatedOrder == null)
             {
                 return NotFound(new { message = "Pedido não encontrado após atualização" });
@@ -324,27 +202,7 @@ public class OrdersController : ControllerBase
                 id, 
                 updateStatusDto.Status);
 
-            var response = new OrderResponseDto
-            {
-                Id = updatedOrder.Id,
-                OrderNumber = updatedOrder.OrderNumber,
-                Description = updatedOrder.Description,
-                Value = updatedOrder.Value,
-                DeliveryAddress = new DeliveryAddressDto
-                {
-                    Cep = updatedOrder.DeliveryAddress.Cep,
-                    Street = updatedOrder.DeliveryAddress.Street,
-                    Number = updatedOrder.DeliveryAddress.Number,
-                    Neighborhood = updatedOrder.DeliveryAddress.Neighborhood,
-                    City = updatedOrder.DeliveryAddress.City,
-                    State = updatedOrder.DeliveryAddress.State
-                },
-                Status = updatedOrder.Status,
-                UserId = updatedOrder.UserId,
-                UserName = updatedOrder.UserName,
-                CreatedAt = updatedOrder.CreatedAt,
-                UpdatedAt = updatedOrder.UpdatedAt
-            };
+            var response = updatedOrder.ToDto();
 
             // Emitir evento SignalR com o pedido completo
             await _hubContext.Clients.All.SendAsync("order-status-changed", response);

@@ -1,4 +1,4 @@
-using Backend.Models.DTOs;
+using Backend.DTOs.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 

@@ -1,4 +1,6 @@
-namespace Backend.Models.DTOs;
+using Backend.DTOs.Request;
+
+namespace Backend.DTOs.Response;
 
 public class OrderResponseDto
 {

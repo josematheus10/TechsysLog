@@ -2,6 +2,7 @@ using Backend.Configuration;
 using Backend.Data;
 using Backend.Hubs;
 using Backend.Models;
+using Backend.Repositories;
 using Backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -44,7 +45,7 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
-    
+
     options.User.RequireUniqueEmail = true;
 })
 .AddDefaultTokenProviders();
@@ -71,7 +72,7 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
         ClockSkew = TimeSpan.Zero
     };
-    
+
     // Permitir autenticação via query string para SignalR
     options.Events = new JwtBearerEvents
     {
@@ -79,12 +80,12 @@ builder.Services.AddAuthentication(options =>
         {
             var accessToken = context.Request.Query["access_token"];
             var path = context.HttpContext.Request.Path;
-            
+
             if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
             {
                 context.Token = accessToken;
             }
-            
+
             return Task.CompletedTask;
         }
     };
@@ -95,17 +96,22 @@ builder.Services.AddAuthorization();
 
 // Add custom services
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IOrderStore, MongoOrderStore>();
+
+// Add Repository Pattern
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 
 // Add CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
+        if (builder.Environment.IsDevelopment())
+        {
+            policy.SetIsOriginAllowed(_ => true)
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        }
     });
 });
 
@@ -145,7 +151,11 @@ app.UseSwaggerUI(options =>
 // CORS deve vir antes de UseHttpsRedirection
 app.UseCors("AllowAll");
 
-app.UseHttpsRedirection();
+// Apenas usar HTTPS redirect se não estiver em container
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Backend.Models.DTOs;
+namespace Backend.DTOs.Request;
 
 public class UpdateOrderStatusDto
 {

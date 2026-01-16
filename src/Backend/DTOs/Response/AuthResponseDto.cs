@@ -1,4 +1,4 @@
-namespace Backend.Models.DTOs;
+namespace Backend.DTOs.Response;
 
 public class AuthResponseDto
 {
