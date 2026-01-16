@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="Backend.Test/Backend.Test.csproj" Id="56a487a2-9e28-4247-9fdf-a8a3a838a5ab" />
   <Project Path="Backend/Backend.csproj" Id="0f6024ba-769b-4b84-bef7-76a5dd173c0a" />
   <Project Path="docker-compose.dcproj">
     <Build />
