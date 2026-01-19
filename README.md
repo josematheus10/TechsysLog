@@ -11,7 +11,7 @@
 
 ## 📋 Sobre o Projeto
 
-O Objetivo do projeto é demonstar o uso do .NET 10 em conjunto com Angular para criar uma aplicação com dados em tempo real.
+O Objetivo do projeto é demonstrar o uso do .NET 10 em conjunto com Angular para criar uma aplicação com dados em tempo real.
 
 ## 🚀 Tecnologias
 
